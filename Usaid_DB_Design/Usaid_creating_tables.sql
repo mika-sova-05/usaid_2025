@@ -197,57 +197,12 @@ WITH (FORMAT = 'CSV')
 
 SELECT * FROM funding_account;
 
--- Since a native identifier is of text type (kind of 72x1037), let's create a new one with integer type
+-- Since a native identifier is of text type (kind of 72x1037), let's create a new one with integer type and IDENTITY property.
 ALTER TABLE funding_account
-ADD funding_account_id1 BIGINT;
-
--- Fulfilling a new column with values from cte
-WITH cte AS (
-	SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) as for_funding_account_id1    
-	FROM funding_account
-)
-UPDATE funding_account
-SET funding_account.funding_account_id1 = cte.for_funding_account_id1
-FROM funding_account 
-INNER JOIN 
-	cte
-ON funding_account.funding_account_id = cte.funding_account_id AND
-	funding_account.funding_account_name = cte.funding_account_name AND
-	funding_account.funding_agency_id = cte.funding_agency_id ;
-	
-
--- In case a trigger banning data type change is active, let's disable it:
-IF EXISTS (SELECT * 
-		   FROM sys.triggers
-		   WHERE name = 'BanOnDTChange'
-		   AND parent_class_desc = 'DATABASE')
-BEGIN 
-	DISABLE TRIGGER BanOnDTChange ON DATABASE;
-END;
-
--- Changing data type of a new column
-ALTER TABLE funding_account
-ALTER COLUMN funding_account_id1 BIGINT NOT NULL;
-
--- Enabling the trigge back
-IF EXISTS (SELECT * 
-		   FROM sys.triggers
-		   WHERE name = 'BanOnDTChange'
-		   AND parent_class_desc = 'DATABASE')
-BEGIN 
-	ENABLE TRIGGER BanOnDTChange ON DATABASE;
-END;
-
-
---ALTER TABLE funding_account
---ADD FOREIGN KEY (funding_agency_id) REFERENCES funding_agency(funding_agency_id);
+ADD funding_account_id1 BIGINT IDENTITY(1,1) NOT NULL;
 
 ALTER TABLE funding_account
 ADD CONSTRAINT funding_account_PK PRIMARY KEY (funding_account_id1);
-
-
---ALTER TABLE funding_account -- firstly delete PK, only after delete a column
---DROP funding_account_pk;
 
 SELECT * FROM funding_account;
 EXEC sp_help 'funding_account';
