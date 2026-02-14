@@ -1,6 +1,6 @@
 # USAID Database UML Design
 
-## DB_schema
+# DB_schema
 ![UML Schema](USAID_UML_DB_Design-DB_schema.drawio.svg)
 
 # DB_design
